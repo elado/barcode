@@ -1,0 +1,13 @@
+{
+  "name": "quagga",
+  "_cacheHeaders": {
+    "ETag": "\"0089a8da913b342481e80e25ab1c02889a4df85a\"",
+    "Content-Length": "264432",
+    "Content-Type": "text/plain; charset=utf-8"
+  },
+  "_release": "e-tag:0089a8da9",
+  "main": "index.js",
+  "_source": "https://raw.githubusercontent.com/serratus/quaggaJS/master/dist/quagga.js",
+  "_target": "*",
+  "_originalSource": "https://raw.githubusercontent.com/serratus/quaggaJS/master/dist/quagga.js"
+}
