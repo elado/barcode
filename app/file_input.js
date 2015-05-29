@@ -1,17 +1,22 @@
 $(function() {
     var App = {
-        init : function() {
-            Quagga.init(this.state, function() {
-                App.attachListeners();
-                Quagga.start();
-            });
+        init: function() {
+            App.attachListeners();
         },
         attachListeners: function() {
             var self = this;
 
-            $(".controls").on("click", "button.stop", function(e) {
-                e.preventDefault();
-                Quagga.stop();
+            $(".controls input[type=file]").on("change", function(e) {
+                if (e.target.files && e.target.files.length) {
+                    App.decode(URL.createObjectURL(e.target.files[0]));
+                }
+            });
+
+            $(".controls button").on("click", function(e) {
+                var input = document.querySelector(".controls input[type=file]");
+                if (input.files && input.files.length) {
+                    App.decode(URL.createObjectURL(input.files[0]));
+                }
             });
 
             $(".controls .reader-config-group").on("change", "input, select", function(e) {
@@ -43,8 +48,15 @@ $(function() {
             });
         },
         detachListeners: function() {
-            $(".controls").off("click", "button.stop");
+            $(".controls input[type=file]").off("change");
             $(".controls .reader-config-group").off("change", "input, select");
+            $(".controls button").off("click");
+        },
+        decode: function(src) {
+            var self = this,
+                config = $.extend({}, self.state, {src: src});
+
+            Quagga.decodeSingle(config, function(result) {});
         },
         setState: function(path, value) {
             var self = this;
@@ -57,18 +69,12 @@ $(function() {
 
             console.log(JSON.stringify(self.state));
             App.detachListeners();
-            Quagga.stop();
             App.init();
         },
         inputMapper: {
             inputStream: {
-                constraints: function(value){
-                    var values = value.split('x');
-                    return {
-                        width: parseInt(values[0]),
-                        height: parseInt(values[1]),
-                        facing: "environment"
-                    }
+                size: function(value){
+                    return parseInt(value);
                 }
             },
             numOfWorkers: function(value) {
@@ -82,24 +88,21 @@ $(function() {
         },
         state: {
             inputStream: {
-                type : "LiveStream",
-                constraints: {
-                    width: 640,
-                    height: 480,
-                    facing: "environment" // or user
-                }
+                size: 640
             },
             locator: {
-                patchSize: "medium",
-                halfSample: true
+                patchSize: "large",
+                halfSample: false
             },
-            numOfWorkers: 4,
+            numOfWorkers: 0,
             decoder: {
-                readers : ["code_128_reader"]
+                readers: ["code_128_reader"],
+                showFrequency: true,
+                showPattern: true
             },
-            locate: true
-        },
-        lastResult : null
+            locate: true,
+            src: null
+        }
     };
 
     App.init();
@@ -129,17 +132,14 @@ $(function() {
     });
 
     Quagga.onDetected(function(result) {
-        var code = result.codeResult.code;
+        var code = result.codeResult.code,
+            $node,
+            canvas = Quagga.canvas.dom.image;
 
-        if (App.lastResult !== code) {
-            App.lastResult = code;
-            var $node = null, canvas = Quagga.canvas.dom.image;
-
-            $node = $('<li><div class="thumbnail"><div class="imgWrapper"><img /></div><div class="caption"><h4 class="code"></h4></div></div></li>');
-            $node.find("img").attr("src", canvas.toDataURL());
-            $node.find("h4.code").html(code);
-            $("#result_strip ul.thumbnails").prepend($node);
-        }
+        $node = $('<li><div class="thumbnail"><div class="imgWrapper"><img /></div><div class="caption"><h4 class="code"></h4></div></div></li>');
+        $node.find("img").attr("src", canvas.toDataURL());
+        $node.find("h4.code").html(code);
+        alert(code);
+        $("#result_strip ul.thumbnails").prepend($node);
     });
-
 });
